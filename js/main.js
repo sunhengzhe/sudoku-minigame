@@ -143,35 +143,35 @@ export default class Main {
 
     this.bg.render(ctx)
 
-    databus.bullets
-          .concat(databus.enemys)
-          .forEach((item) => {
-              item.drawToCanvas(ctx)
-            })
+    this.chessBoard.drawToCanvas(ctx)
+    this.numberPicker.drawToCanvas(ctx)
 
-    this.player.drawToCanvas(ctx)
+    // databus.bullets
+    //       .concat(databus.enemys)
+    //       .forEach((item) => {
+    //           item.drawToCanvas(ctx)
+    //         })
 
-    databus.animations.forEach((ani) => {
-      if ( ani.isPlaying ) {
-        ani.aniRender(ctx)
-      }
-    })
+    // this.player.drawToCanvas(ctx)
+
+    // databus.animations.forEach((ani) => {
+    //   if ( ani.isPlaying ) {
+    //     ani.aniRender(ctx)
+    //   }
+    // })
 
     // this.gameinfo.renderGameScore(ctx, databus.score)
 
     // 游戏结束停止帧循环
-    if ( databus.gameOver ) {
-      this.gameinfo.renderGameOver(ctx, databus.score)
+    // if ( databus.gameOver ) {
+    //   this.gameinfo.renderGameOver(ctx, databus.score)
 
-      if ( !this.hasEventBind ) {
-        this.hasEventBind = true
-        this.touchHandler = this.touchEventHandler.bind(this)
-        canvas.addEventListener('touchstart', this.touchHandler)
-      }
-    }
-
-    this.chessBoard.drawToCanvas(ctx)
-    this.numberPicker.drawToCanvas(ctx)
+    //   if ( !this.hasEventBind ) {
+    //     this.hasEventBind = true
+    //     this.touchHandler = this.touchEventHandler.bind(this)
+    //     canvas.addEventListener('touchstart', this.touchHandler)
+    //   }
+    // }
   }
 
   // 游戏逻辑更新主函数
@@ -204,9 +204,9 @@ export default class Main {
     // this.update()
     this.render()
 
-    // this.aniId = window.requestAnimationFrame(
-    //   this.bindLoop,
-    //   canvas
-    // )
+    this.aniId = window.requestAnimationFrame(
+      this.bindLoop,
+      canvas
+    )
   }
 }

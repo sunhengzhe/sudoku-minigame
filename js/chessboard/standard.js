@@ -96,6 +96,36 @@ export default class StandardChessBoard {
     ctx.fillStyle="#fff";
     ctx.fillRect(this.x, this.y, BOARD_SIZE, BOARD_SIZE);
 
+    this.cells.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+        if (
+          this.selectedCell &&
+          this.selectedCell.row === rowIndex &&
+          this.selectedCell.col === colIndex
+        ) {
+          ctx.fillStyle = '#ccc'
+          ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
+        }
+
+        if (cell.number === 0) {
+          return
+        }
+
+        if (cell.isEditable) {
+          ctx.fillStyle = '#007fff'
+        } else {
+          ctx.fillStyle = '#000'
+        }
+
+        ctx.fillText(
+          cell.number,
+          x,
+          y
+        )
+      })
+    })
+
     ctx.fillStyle = "#000"
     for (let i = 0; i < 10; i++) {
       const isThickLine = i % 3 === 0
@@ -117,27 +147,5 @@ export default class StandardChessBoard {
       ctx.closePath()
       ctx.stroke()
     }
-
-    this.cells.forEach((row, rowIndex) => {
-      row.forEach((cell, colIndex) => {
-        if (cell.number === 0) {
-          return
-        }
-
-        const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
-
-        if (cell.isEditable) {
-          ctx.fillStyle = '#007fff'
-        } else {
-          ctx.fillStyle = '#000'
-        }
-
-        ctx.fillText(
-          cell.number,
-          x,
-          y
-        )
-      })
-    })
   }
 }
