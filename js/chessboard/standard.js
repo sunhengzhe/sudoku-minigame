@@ -9,31 +9,65 @@ const BOARD_SIZE = screenWidth - 2 * MARGIN_TO_VERTICAL_SIDE
 const CELL_SIZE = (BOARD_SIZE - 4 * THICK_LINE_WIDTH - 6 * THIN_LINE_WIDTH) / 9
 
 export default class StandardChessBoard {
-  constructor() {
+  constructor(y) {
     this.cells = []
     this.x = MARGIN_TO_VERTICAL_SIDE
-    this.y = 50
+    this.y = y || 50
     this.size = BOARD_SIZE
 
     for (let i = 0; i < 9; i++) {
       this.cells.push([]);
     }
 
-    this.selectedCell = {
-      row: 0,
-      col: 1
-    }
+    this.selectedCell = null
+
+    this.initEvent()
+  }
+
+  initEvent() {
+    canvas.addEventListener('touchstart', ((e) => {
+      e.preventDefault()
+
+      const { clientX, clientY } = e.touches[0]
+
+      for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
+        for (let colIndex = 0; colIndex < 9; colIndex++) {
+          const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+
+          if (
+            clientX >= x - CELL_SIZE / 2 &&
+            clientX <= x + CELL_SIZE / 2 &&
+            clientY >= y - CELL_SIZE / 2 &&
+            clientY <= y + CELL_SIZE / 2
+          ) {
+            this.selectedCell = {
+              row: rowIndex,
+              col: colIndex
+            }
+            return
+          }
+        }
+      }
+    }).bind(this))
   }
 
   setNumberToSelectedCell(number) {
+    if (!this.selectedCell) {
+      return
+    }
+
     const { row, col } = this.selectedCell
-    this.cells[row][col] = new Cell(row, col, number)
+    const cell = this.cells[row][col]
+
+    if (cell.isEditable) {
+      cell.number = number
+    }
   }
 
   setCells(newCells) {
     newCells.forEach((row, rowIndex) => {
-      row.forEach((cell, colIndex) => {
-        this.cells[rowIndex][colIndex] = new Cell(rowIndex, colIndex, cell)
+      row.forEach((number, colIndex) => {
+        this.cells[rowIndex][colIndex] = new Cell(rowIndex, colIndex, number, number === 0)
       })
     })
   }
@@ -64,15 +98,8 @@ export default class StandardChessBoard {
 
     ctx.fillStyle = "#000"
     for (let i = 0; i < 10; i++) {
-      const thickLineCount = i === 0 ? 0 : (Math.floor((i - 1) / 3) + 1)
-      const thinLineCount = i - thickLineCount
-      const cellCount = i
-
       const isThickLine = i % 3 === 0
-
-      const existMargin = thickLineCount * THICK_LINE_WIDTH +
-        cellCount * CELL_SIZE +
-        thinLineCount * THIN_LINE_WIDTH
+      const existMargin = this.getMargin(i)
 
       ctx.lineWidth = isThickLine ? THICK_LINE_WIDTH : THIN_LINE_WIDTH
       const startLeft = this.x + existMargin + ctx.lineWidth / 2
@@ -93,12 +120,16 @@ export default class StandardChessBoard {
 
     this.cells.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
+        if (cell.number === 0) {
+          return
+        }
+
         const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
 
         if (cell.isEditable) {
-          ctx.fillStyle = '#000'
-        } else {
           ctx.fillStyle = '#007fff'
+        } else {
+          ctx.fillStyle = '#000'
         }
 
         ctx.fillText(

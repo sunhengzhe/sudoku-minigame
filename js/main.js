@@ -10,9 +10,10 @@ import EventBus from './event-bus'
 
 const eventBus = new EventBus
 
-let ctx   = canvas.getContext('2d')
+let ctx = canvas.getContext('2d')
 let databus = new DataBus()
 
+ctx.font = "20px Arial"
 ctx.textAlign = 'center'
 ctx.textBaseline = 'middle'
 
@@ -156,7 +157,7 @@ export default class Main {
       }
     })
 
-    this.gameinfo.renderGameScore(ctx, databus.score)
+    // this.gameinfo.renderGameScore(ctx, databus.score)
 
     // 游戏结束停止帧循环
     if ( databus.gameOver ) {
@@ -200,7 +201,7 @@ export default class Main {
   loop() {
     databus.frame++
 
-    this.update()
+    // this.update()
     this.render()
 
     // this.aniId = window.requestAnimationFrame(

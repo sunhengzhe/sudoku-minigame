@@ -20,8 +20,6 @@ export default class EventBus {
   emit(type, ...args) {
     let handlers = this.listenerMap[type] || []
 
-    console.log(handlers)
-
     for (const handler of handlers) {
       handler(...args)
     }
