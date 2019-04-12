@@ -1,24 +1,33 @@
 import Cell from './cell'
 
 const screenWidth  = window.innerWidth
-const screenHeight = window.innerHeight
 
-const CELL_SIZE = 30
-
+const MARGIN_TO_VERTICAL_SIDE = 5;
 const THICK_LINE_WIDTH = 3
 const THIN_LINE_WIDTH = 1
-
-const BOARD_SIZE = 9 * CELL_SIZE + 4 * THICK_LINE_WIDTH + 6 * THIN_LINE_WIDTH
+const BOARD_SIZE = screenWidth - 2 * MARGIN_TO_VERTICAL_SIDE
+const CELL_SIZE = (BOARD_SIZE - 4 * THICK_LINE_WIDTH - 6 * THIN_LINE_WIDTH) / 9
 
 export default class StandardChessBoard {
   constructor() {
     this.cells = []
-    this.x = (screenWidth - BOARD_SIZE) / 2
+    this.x = MARGIN_TO_VERTICAL_SIDE
     this.y = 50
+    this.size = BOARD_SIZE
 
     for (let i = 0; i < 9; i++) {
       this.cells.push([]);
     }
+
+    this.selectedCell = {
+      row: 0,
+      col: 1
+    }
+  }
+
+  setNumberToSelectedCell(number) {
+    const { row, col } = this.selectedCell
+    this.cells[row][col] = new Cell(row, col, number)
   }
 
   setCells(newCells) {
@@ -82,20 +91,21 @@ export default class StandardChessBoard {
       ctx.stroke()
     }
 
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
     this.cells.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
-        if (!cell.isEditable) {
-          const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+        const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
 
-          ctx.fillText(
-            cell.number,
-            x,
-            y
-          )
+        if (cell.isEditable) {
+          ctx.fillStyle = '#000'
+        } else {
+          ctx.fillStyle = '#007fff'
         }
+
+        ctx.fillText(
+          cell.number,
+          x,
+          y
+        )
       })
     })
   }

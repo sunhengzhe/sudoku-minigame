@@ -5,9 +5,16 @@ import GameInfo   from './runtime/gameinfo'
 import Music      from './runtime/music'
 import DataBus    from './databus'
 import StandardChessBoard from './chessboard/standard'
+import NumberPicker from './toolbar/number-picker'
+import EventBus from './event-bus'
+
+const eventBus = new EventBus
 
 let ctx   = canvas.getContext('2d')
 let databus = new DataBus()
+
+ctx.textAlign = 'center'
+ctx.textBaseline = 'middle'
 
 /**
  * 游戏主函数
@@ -33,6 +40,15 @@ export default class Main {
     this.gameinfo = new GameInfo()
     this.music    = new Music()
     this.chessBoard    = new StandardChessBoard()
+    this.numberPicker = new NumberPicker({
+      x: this.chessBoard.x,
+      y: this.chessBoard.y + this.chessBoard.size + 10
+    })
+
+    eventBus.on('on-number-pick', number => {
+      this.chessBoard.setNumberToSelectedCell(number)
+      this.chessBoard.drawToCanvas(ctx)
+    })
 
     this.chessBoard.setCells([
       [3, 0, 6, 5, 0, 8, 4, 0, 0],
@@ -154,6 +170,7 @@ export default class Main {
     }
 
     this.chessBoard.drawToCanvas(ctx)
+    this.numberPicker.drawToCanvas(ctx)
   }
 
   // 游戏逻辑更新主函数
@@ -186,9 +203,9 @@ export default class Main {
     this.update()
     this.render()
 
-    this.aniId = window.requestAnimationFrame(
-      this.bindLoop,
-      canvas
-    )
+    // this.aniId = window.requestAnimationFrame(
+    //   this.bindLoop,
+    //   canvas
+    // )
   }
 }
