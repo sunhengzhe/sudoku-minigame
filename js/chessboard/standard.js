@@ -3,8 +3,9 @@ import DataBus from '../databus'
 import EventBus from '../event-bus'
 
 const evenBus = new EventBus()
+const dataBus = new DataBus()
 
-const theme = new DataBus().getTheme()
+const theme = dataBus.getTheme()
 
 const screenWidth  = window.innerWidth
 
@@ -21,6 +22,7 @@ export default class StandardChessBoard {
     this.x = x || MARGIN_TO_VERTICAL_SIDE
     this.y = y || MARGIN_TOP
     this.size = BOARD_SIZE
+    this.mode = dataBus.mode
 
     for (let i = 0; i < 9; i++) {
       this.cells.push([]);
@@ -91,8 +93,12 @@ export default class StandardChessBoard {
   }
 
   initEvent() {
-    evenBus.on('on-eraser-click', () => {
+    evenBus.on('erase', () => {
       this.setNumberToSelectedCell(0)
+    })
+
+    evenBus.on('change-mode', mode => {
+      this.mode = mode
     })
 
     evenBus.on('rollback', () => {
@@ -107,13 +113,14 @@ export default class StandardChessBoard {
             row: data.rowIndex,
             col: data.colIndex
           }
-          this.setNumberToSelectedCell(data.from, true)
+          // this.setNumberToSelectedCell(data.from, true)
+          this.cells[data.rowIndex][data.colIndex] = data.from
         }
       }
     })
   }
 
-  setNumberToSelectedCell(number, isRollback = false) {
+  setNumberToSelectedCell(number) {
     if (!this.selectedCell) {
       return
     }
@@ -121,33 +128,52 @@ export default class StandardChessBoard {
     const { row, col } = this.selectedCell
     const cell = this.cells[row][col]
 
-    if (cell.number === number) {
+    if (!cell.isEditable) {
       return
     }
 
-    if (cell.isEditable) {
-      const from = cell.number
-      const to = number
+    const from = cell.clone()
 
-      cell.number = to
-      cell.isValid = this.isValidCell(cell)
+    if (this.mode === DataBus.MODE.DRAFT) {
+      cell.number = 0
+      const indexOfExist = cell.drafts.indexOf(number)
+      if (indexOfExist > -1) {
+        cell.drafts.splice(indexOfExist, 1)
+      } else {
+        cell.drafts.push(number)
+      }
+    } else {
+      cell.drafts = []
 
-      evenBus.emit('on-cell-set', {
-        from,
-        to,
-        cells: this.cells
-      })
+      if (cell.number === number) {
+        return
+      }
 
-      !isRollback && this.history.push({
-        type: 'set-number',
-        data: {
-          rowIndex: this.selectedCell.row,
-          colIndex: this.selectedCell.col,
-          from,
-          to
-        }
+      cell.number = number
+      this.cells.forEach(row => {
+        row.forEach(item => {
+          item.isValid = this.isValidCell(item)
+        })
       })
     }
+
+    const to = cell.clone()
+
+    evenBus.emit('cell-set', {
+      from,
+      to,
+      cells: this.cells
+    })
+
+    this.history.push({
+      type: 'set-number',
+      data: {
+        rowIndex: this.selectedCell.row,
+        colIndex: this.selectedCell.col,
+        from,
+        to
+      }
+    })
   }
 
   setCells(newCells) {
@@ -194,8 +220,6 @@ export default class StandardChessBoard {
       col: selectedColIndex
     } = this.selectedCell
 
-
-
     // 同一行列
     if (rowIndex === selectedRowIndex || colIndex === selectedColIndex) {
       return true
@@ -212,64 +236,7 @@ export default class StandardChessBoard {
     return false
   }
 
-  drawCellBg(ctx, x, y, bgColor) {
-    ctx.fillStyle = bgColor
-    ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
-  }
-
-  drawToCanvas(ctx) {
-    ctx.fillStyle = theme.chessBoardBg;
-    ctx.fillRect(this.x, this.y, BOARD_SIZE, BOARD_SIZE);
-
-    this.cells.forEach((row, rowIndex) => {
-      row.forEach((cell, colIndex) => {
-        const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
-
-        // 提示背景
-        if (this.isInHitAreaAt(rowIndex, colIndex)) {
-          this.drawCellBg(ctx, x, y, theme.hitCellBg)
-        }
-
-        // 选中块高亮
-        if (this.isSelectedCellAt(rowIndex, colIndex)) {
-          this.drawCellBg(ctx, x, y, theme.selectedCellBg)
-        }
-
-        if (cell.number === 0) {
-          return
-        }
-
-        // 相同的数字高亮
-        if (this.selectedCell) {
-          const { number: selectedNumber } = this.cells[this.selectedCell.row][this.selectedCell.col]
-          if (cell.number === selectedNumber) {
-            this.drawCellBg(ctx, x, y, theme.selectedCellBg)
-          }
-        }
-
-        // 渲染数字
-        let cellColor
-        if (cell.isEditable) {
-          if (cell.isValid) {
-            cellColor = theme.validCellColor
-          } else {
-            cellColor = theme.invalidCellColor
-          }
-        } else {
-          cellColor = theme.chessBoardColor
-        }
-
-        ctx.fillStyle = cellColor
-
-        ctx.fillText(
-          cell.number,
-          x,
-          y
-        )
-      })
-    })
-
-
+  drawGrid(ctx) {
     ctx.strokeStyle = theme.chessBoardBorderColor
 
     for (let i = 0; i < 10; i++) {
@@ -292,5 +259,97 @@ export default class StandardChessBoard {
       ctx.closePath()
       ctx.stroke()
     }
+  }
+
+  drawCellBg(ctx, cell) {
+    ctx.fillStyle = theme.chessBoardBg;
+
+    const { rowIndex, colIndex } = cell
+    const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+
+    // 提示背景
+    if (this.isInHitAreaAt(rowIndex, colIndex)) {
+      ctx.fillStyle = theme.hitCellBg
+    }
+
+    // 相同数字背景
+    if (cell.number > 0 && this.selectedCell) {
+      const { number: selectedNumber } = this.cells[this.selectedCell.row][this.selectedCell.col]
+
+      if (cell.number === selectedNumber) {
+        ctx.fillStyle = theme.sameCellBg
+      }
+    }
+
+    // 选中块背景
+    if (this.isSelectedCellAt(rowIndex, colIndex)) {
+      ctx.fillStyle = theme.selectedCellBg
+    }
+
+    ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE)
+  }
+
+  drawCellText(ctx, cell) {
+    if (
+      !cell.isEditable ||
+      cell.number > 0
+    ) {
+      this.drawNormalCellText(ctx, cell)
+    } else {
+      this.drawDraftCellText(ctx, cell)
+    }
+  }
+
+  drawNormalCellText(ctx, cell) {
+    const { rowIndex, colIndex, number } = cell
+    const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+
+    if (number === 0) {
+      return
+    }
+
+    // 数字
+    let cellColor
+    if (cell.isEditable) {
+      cellColor = cell.isValid ? theme.validCellColor : theme.invalidCellColor
+    } else {
+      cellColor = theme.chessBoardColor
+    }
+
+    ctx.font = '28px Arial'
+    ctx.fillStyle = cellColor
+    ctx.fillText(number, x, y)
+  }
+
+  drawDraftCellText(ctx, cell) {
+    const { rowIndex, colIndex, drafts } = cell
+    const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+
+    drafts.forEach(number => {
+      const draftRowIndex = Math.floor((number - 1) / 3)
+      const draftColIndex = Math.floor((number - 1) % 3)
+
+      ctx.font = '11px Arial'
+      ctx.fillStyle = theme.draftColor
+      ctx.fillText(
+        number,
+        x + (draftColIndex - 1) * CELL_SIZE / 3,
+        y + (draftRowIndex - 1) * CELL_SIZE / 3,
+      )
+    })
+  }
+
+  drawToCanvas(ctx) {
+    ctx.fillStyle = theme.chessBoardBg;
+    ctx.fillRect(this.x, this.y, BOARD_SIZE, BOARD_SIZE);
+
+    this.cells.forEach(row => {
+      row.forEach(cell=> {
+        this.drawCellBg(ctx, cell)
+        this.drawCellText(ctx, cell)
+      })
+    })
+
+    this.drawGrid(ctx)
   }
 }

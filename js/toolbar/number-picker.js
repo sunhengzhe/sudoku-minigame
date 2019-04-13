@@ -1,8 +1,10 @@
 import EventBus from '../event-bus'
 import DataBus from '../databus'
 
-const theme = new DataBus().getTheme()
+const dataBus = new DataBus()
 const eventBus = new EventBus()
+
+const theme = dataBus.getTheme()
 
 const screenWidth  = window.innerWidth
 
@@ -17,6 +19,8 @@ export default class NumberPicker {
     this.y = y
     this.height = CELL_SIZE
     this.numberButtons = []
+    this.color = theme.numberPickerColor
+    this.mode = DataBus.MODE.SOLVE
 
     this.initButtons()
     this.initEvent()
@@ -56,38 +60,46 @@ export default class NumberPicker {
       const btn = this.numberButtons[i]
 
       if (
-        btn.isShow &&
+        !(this.mode === DataBus.MODE.SOLVE && !btn.isShow) &&
         x >= btn.startX &&
         x <= btn.endX &&
         y >= btn.startY &&
         y <= btn.endY
       ) {
-        eventBus.emit('on-number-pick', btn.number)
+        eventBus.emit('number-pick', btn.number)
         break;
       }
     }
   }
 
   initEvent() {
-    eventBus.on('on-cell-set', ({ from, to, cells }) => {
-      [from, to].filter(number => number > 0).forEach(number => {
+    eventBus.on('cell-set', ({ from, to, cells }) => {
+      [from.number, to.number].filter(number => number > 0).forEach(number => {
         const numberExistCount = this.countCellByNumber(cells, number)
         this.numberButtons[number - 1].isShow = numberExistCount < 9
       })
+    })
+
+    eventBus.on('change-mode', mode => {
+      this.mode = mode
+      this.color = mode === DataBus.MODE.DRAFT ? theme.draftColor : theme.numberPickerColor
     })
   }
 
   drawToCanvas(ctx) {
     ctx.font = '28px Arial'
-    ctx.fillStyle = theme.numberPickerColor
+    ctx.fillStyle = this.color
 
-    this.numberButtons.filter(button => button.isShow)
-      .forEach(({ startX, startY, number })=> {
-        ctx.fillText(
-          number,
-          startX + CELL_SIZE / 2,
-          startY + CELL_SIZE / 2
-        )
-      })
+    this.numberButtons.forEach(({ startX, startY, number, isShow })=> {
+      if (this.mode === DataBus.MODE.SOLVE && !isShow) {
+        return
+      }
+
+      ctx.fillText(
+        number,
+        startX + CELL_SIZE / 2,
+        startY + CELL_SIZE / 2
+      )
+    })
   }
 }

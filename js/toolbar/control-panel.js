@@ -2,8 +2,9 @@ import DataBus from '../databus'
 import EventBus from '../event-bus'
 
 const eventBus = new EventBus()
+const dataBus = new DataBus()
 
-const theme = new DataBus().getTheme()
+const theme = dataBus.getTheme()
 
 const screenWidth  = window.innerWidth
 
@@ -23,15 +24,16 @@ const eraserBtn = {
   img: 'images/eraser.png',
   text: '擦除',
   onClick: () => {
-    eventBus.emit('on-eraser-click')
+    eventBus.emit('erase')
   }
 }
 
 const noteModeBtn = {
   img: 'images/note.png',
-  text: '笔记模式',
-  onClick: () => {
-    console.log('click note')
+  text: '草稿模式',
+  onClick: function () {
+    dataBus.changeMode()
+    this.text = this.text === '草稿模式' ? '解题模式' : '草稿模式'
   }
 }
 

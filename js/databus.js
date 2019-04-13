@@ -1,7 +1,17 @@
 import Pool from './base/pool'
 import getTheme from './theme/index'
+import EventBus from './event-bus';
+
+const eventBus = new EventBus
 
 let instance
+
+const MODE = {
+  // 解题模式
+  SOLVE: true,
+  // 草稿模式
+  DRAFT: false
+}
 
 /**
  * 全局状态管理器
@@ -15,6 +25,7 @@ export default class DataBus {
 
     this.pool = new Pool()
     this.theme = getTheme()
+    this.mode = MODE.SOLVE
 
     this.reset()
   }
@@ -26,6 +37,15 @@ export default class DataBus {
     this.enemys     = []
     this.animations = []
     this.gameOver   = false
+  }
+
+  changeMode() {
+    this.mode = !this.mode
+    eventBus.emit('change-mode', this.mode)
+  }
+
+  getMode() {
+    return this.mode
   }
 
   getTheme() {
@@ -56,3 +76,5 @@ export default class DataBus {
     this.pool.recover('bullet', bullet)
   }
 }
+
+DataBus.MODE = MODE

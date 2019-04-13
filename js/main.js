@@ -14,7 +14,6 @@ const eventBus = new EventBus()
 let ctx = canvas.getContext('2d')
 let databus = new DataBus()
 
-ctx.font = "20px Arial"
 ctx.textAlign = 'center'
 ctx.textBaseline = 'middle'
 
@@ -59,7 +58,7 @@ export default class Main {
       this.restart()
     })
 
-    eventBus.on('on-number-pick', number => {
+    eventBus.on('number-pick', number => {
       this.chessBoard.setNumberToSelectedCell(number)
       this.chessBoard.drawToCanvas(ctx)
     })
