@@ -18,10 +18,37 @@ export default class NumberPicker {
     this.height = CELL_SIZE
     this.numberButtons = []
 
+    this.initButtons()
     this.initEvent()
   }
 
+  initButtons() {
+    for (let i = 1; i < 10; i++) {
+      const startX = this.x + this.x + (i - 1) * CELL_SIZE
+      const startY = this.y
+
+      const btn = {
+        startX,
+        startY,
+        endX: startX + CELL_SIZE,
+        endY: startY + CELL_SIZE,
+        number: i,
+        isShow: true
+      }
+
+      this.numberButtons.push(btn)
+    }
+  }
+
   initEvent() {
+    eventBus.on('on-cell-set', (number, cells) => {
+      const numberExistCount = cells.reduce((prev, cur) => {
+        return prev + cur.filter(cell => cell.isValid && cell.number === number).length
+      }, 0)
+
+      this.numberButtons[number - 1].isShow = numberExistCount < 9
+    })
+
     canvas.addEventListener('touchstart', ((e) => {
       e.preventDefault()
 
@@ -32,6 +59,7 @@ export default class NumberPicker {
         const btn = this.numberButtons[i]
 
         if (
+          btn.isShow &&
           x >= btn.startX &&
           x <= btn.endX &&
           y >= btn.startY &&
@@ -48,25 +76,13 @@ export default class NumberPicker {
     ctx.font = '28px Arial'
     ctx.fillStyle = theme.numberPickerColor
 
-    for (let i = 1; i < 10; i++) {
-      const startX = this.x + this.x + (i - 1) * CELL_SIZE
-      const startY = this.y
-
-      const btn = {
-        startX,
-        startY,
-        endX: startX + CELL_SIZE,
-        endY: startY + CELL_SIZE,
-        number: i
-      }
-
-      this.numberButtons.push(btn)
-
-      ctx.fillText(
-        i,
-        startX + CELL_SIZE / 2,
-        startY + CELL_SIZE / 2
-      )
-    }
+    this.numberButtons.filter(button => button.isShow)
+      .forEach(({ startX, startY, number })=> {
+        ctx.fillText(
+          number,
+          startX + CELL_SIZE / 2,
+          startY + CELL_SIZE / 2
+        )
+      })
   }
 }

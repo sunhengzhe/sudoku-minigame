@@ -1,5 +1,8 @@
 import Cell from './cell'
 import DataBus from '../databus'
+import EventBus from '../event-bus'
+
+const evenBus = new EventBus()
 
 const theme = new DataBus().getTheme()
 
@@ -97,6 +100,8 @@ export default class StandardChessBoard {
     if (cell.isEditable) {
       cell.number = number
       cell.isValid = this.isValidCell(cell)
+
+      evenBus.emit('on-cell-set', number, this.cells)
     }
   }
 
