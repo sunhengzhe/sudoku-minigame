@@ -46,6 +46,28 @@ export default class NumberPicker {
     }, 0)
   }
 
+  touchStartHandler(e) {
+    e.preventDefault()
+
+    const x = e.touches[0].clientX
+    const y = e.touches[0].clientY
+
+    for (let i = 0; i < 9; i++) {
+      const btn = this.numberButtons[i]
+
+      if (
+        btn.isShow &&
+        x >= btn.startX &&
+        x <= btn.endX &&
+        y >= btn.startY &&
+        y <= btn.endY
+      ) {
+        eventBus.emit('on-number-pick', btn.number)
+        break;
+      }
+    }
+  }
+
   initEvent() {
     eventBus.on('on-cell-set', ({ from, to, cells }) => {
       [from, to].filter(number => number > 0).forEach(number => {
@@ -53,28 +75,6 @@ export default class NumberPicker {
         this.numberButtons[number - 1].isShow = numberExistCount < 9
       })
     })
-
-    canvas.addEventListener('touchstart', ((e) => {
-      e.preventDefault()
-
-      const x = e.touches[0].clientX
-      const y = e.touches[0].clientY
-
-      for (let i = 0; i < 9; i++) {
-        const btn = this.numberButtons[i]
-
-        if (
-          btn.isShow &&
-          x >= btn.startX &&
-          x <= btn.endX &&
-          y >= btn.startY &&
-          y <= btn.endY
-        ) {
-          eventBus.emit('on-number-pick', btn.number)
-          break;
-        }
-      }
-    }).bind(this))
   }
 
   drawToCanvas(ctx) {

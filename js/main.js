@@ -9,7 +9,7 @@ import NumberPicker from './toolbar/number-picker'
 import ControlPanel from './toolbar/control-panel'
 import EventBus from './event-bus'
 
-const eventBus = new EventBus
+const eventBus = new EventBus()
 
 let ctx = canvas.getContext('2d')
 let databus = new DataBus()
@@ -25,12 +25,14 @@ export default class Main {
   constructor() {
     // 维护当前requestAnimationFrame的id
     this.aniId    = 0
+    this.touchHandler = this.touchEventHandler.bind(this)
 
     this.restart()
   }
 
   restart() {
     databus.reset()
+    eventBus.reset()
 
     canvas.removeEventListener(
       'touchstart',
@@ -51,6 +53,10 @@ export default class Main {
     const numberPickerTop = this.controlPanel.y + this.controlPanel.height + 10
     this.numberPicker = new NumberPicker({
       y: numberPickerTop
+    })
+
+    eventBus.on('on-game-start', () => {
+      this.restart()
     })
 
     eventBus.on('on-number-pick', number => {
@@ -75,6 +81,8 @@ export default class Main {
       this.bindLoop,
       canvas
     )
+
+    canvas.addEventListener('touchstart', this.touchHandler)
   }
 
   /**
@@ -120,20 +128,11 @@ export default class Main {
     }
   }
 
-  // 游戏结束后的触摸事件处理逻辑
+  // 统一触摸事件处理逻辑
   touchEventHandler(e) {
-     e.preventDefault()
-
-    let x = e.touches[0].clientX
-    let y = e.touches[0].clientY
-
-    let area = this.gameinfo.btnArea
-
-    if (   x >= area.startX
-        && x <= area.endX
-        && y >= area.startY
-        && y <= area.endY  )
-      this.restart()
+    this.chessBoard.touchStartHandler(e)
+    this.numberPicker.touchStartHandler(e)
+    this.controlPanel.touchStartHandler(e)
   }
 
   /**

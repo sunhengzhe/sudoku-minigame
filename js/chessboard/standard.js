@@ -62,35 +62,35 @@ export default class StandardChessBoard {
     return true
   }
 
+  touchStartHandler(e) {
+    e.preventDefault()
+
+    const { clientX, clientY } = e.touches[0]
+
+    for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
+      for (let colIndex = 0; colIndex < 9; colIndex++) {
+        const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+
+        if (
+          clientX >= x - CELL_SIZE / 2 &&
+          clientX <= x + CELL_SIZE / 2 &&
+          clientY >= y - CELL_SIZE / 2 &&
+          clientY <= y + CELL_SIZE / 2
+        ) {
+          this.selectedCell = {
+            row: rowIndex,
+            col: colIndex
+          }
+          return
+        }
+      }
+    }
+  }
+
   initEvent() {
     evenBus.on('on-eraser-click', () => {
       this.setNumberToSelectedCell(0)
     })
-
-    canvas.addEventListener('touchstart', ((e) => {
-      e.preventDefault()
-
-      const { clientX, clientY } = e.touches[0]
-
-      for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
-        for (let colIndex = 0; colIndex < 9; colIndex++) {
-          const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
-
-          if (
-            clientX >= x - CELL_SIZE / 2 &&
-            clientX <= x + CELL_SIZE / 2 &&
-            clientY >= y - CELL_SIZE / 2 &&
-            clientY <= y + CELL_SIZE / 2
-          ) {
-            this.selectedCell = {
-              row: rowIndex,
-              col: colIndex
-            }
-            return
-          }
-        }
-      }
-    }).bind(this))
   }
 
   setNumberToSelectedCell(number) {

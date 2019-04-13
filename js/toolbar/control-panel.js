@@ -39,7 +39,7 @@ const replayBtn = {
   img: 'images/replay.png',
   text: '重新开始',
   onClick: () => {
-    console.log('click replay')
+    eventBus.emit('on-game-start')
   }
 }
 
@@ -57,33 +57,29 @@ export default class ControlPanel {
     ]
 
     this.buttonWidth = BOARD_SIZE / this.buttons.length
-
-    this.initEvent()
   }
 
-  initEvent() {
-    canvas.addEventListener('touchstart', ((e) => {
-      e.preventDefault()
+  touchStartHandler(e) {
+    e.preventDefault()
 
-      const x = e.touches[0].clientX
-      const y = e.touches[0].clientY
+    const x = e.touches[0].clientX
+    const y = e.touches[0].clientY
 
-      for (let i = 0; i < this.buttons.length; i++) {
-        const btn = this.buttons[i]
-        const startX = this.x + i * this.buttonWidth
-        const startY = this.y
+    for (let i = 0; i < this.buttons.length; i++) {
+      const btn = this.buttons[i]
+      const startX = this.x + i * this.buttonWidth
+      const startY = this.y
 
-        if (
-          x >= startX &&
-          x <= startX + this.buttonWidth &&
-          y >= startY &&
-          y <= startY + this.height
-        ) {
-          btn.onClick()
-          break
-        }
+      if (
+        x >= startX &&
+        x <= startX + this.buttonWidth &&
+        y >= startY &&
+        y <= startY + this.height
+      ) {
+        btn.onClick()
+        break
       }
-    }).bind(this))
+    }
   }
 
   drawToCanvas(ctx) {
