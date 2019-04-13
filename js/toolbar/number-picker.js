@@ -40,13 +40,18 @@ export default class NumberPicker {
     }
   }
 
-  initEvent() {
-    eventBus.on('on-cell-set', (number, cells) => {
-      const numberExistCount = cells.reduce((prev, cur) => {
-        return prev + cur.filter(cell => cell.isValid && cell.number === number).length
-      }, 0)
+  countCellByNumber(cells, number) {
+    return cells.reduce((prev, cur) => {
+      return prev + cur.filter(cell => cell.isValid && cell.number === number).length
+    }, 0)
+  }
 
-      this.numberButtons[number - 1].isShow = numberExistCount < 9
+  initEvent() {
+    eventBus.on('on-cell-set', ({ from, to, cells }) => {
+      [from, to].filter(number => number > 0).forEach(number => {
+        const numberExistCount = this.countCellByNumber(cells, number)
+        this.numberButtons[number - 1].isShow = numberExistCount < 9
+      })
     })
 
     canvas.addEventListener('touchstart', ((e) => {

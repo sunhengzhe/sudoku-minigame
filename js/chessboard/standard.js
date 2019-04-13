@@ -63,6 +63,10 @@ export default class StandardChessBoard {
   }
 
   initEvent() {
+    evenBus.on('on-eraser-click', () => {
+      this.setNumberToSelectedCell(0)
+    })
+
     canvas.addEventListener('touchstart', ((e) => {
       e.preventDefault()
 
@@ -98,10 +102,15 @@ export default class StandardChessBoard {
     const cell = this.cells[row][col]
 
     if (cell.isEditable) {
+      const from = cell.number
       cell.number = number
       cell.isValid = this.isValidCell(cell)
 
-      evenBus.emit('on-cell-set', number, this.cells)
+      evenBus.emit('on-cell-set', {
+        from,
+        to: number,
+        cells: this.cells
+      })
     }
   }
 

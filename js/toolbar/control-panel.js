@@ -1,4 +1,7 @@
 import DataBus from '../databus'
+import EventBus from '../event-bus'
+
+const eventBus = new EventBus()
 
 const theme = new DataBus().getTheme()
 
@@ -20,7 +23,7 @@ const eraserBtn = {
   img: 'images/eraser.png',
   text: '擦除',
   onClick: () => {
-    console.log('click eraser')
+    eventBus.emit('on-eraser-click')
   }
 }
 
