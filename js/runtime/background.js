@@ -1,4 +1,7 @@
 import Sprite from '../base/sprite'
+import DataBus from '../databus'
+
+const theme = new DataBus().getTheme()
 
 const screenWidth  = window.innerWidth
 const screenHeight = window.innerHeight
@@ -34,7 +37,7 @@ export default class BackGround extends Sprite {
    * 第二张补全除了top高度之外的部分，其余的隐藏在屏幕下面
    */
   render(ctx) {
-    ctx.fillStyle = '#ecc697'
+    ctx.fillStyle = theme.gameBg
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     // ctx.drawImage(
     //   this.img,

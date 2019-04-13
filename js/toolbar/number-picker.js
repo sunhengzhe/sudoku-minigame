@@ -1,5 +1,7 @@
 import EventBus from '../event-bus'
+import DataBus from '../databus'
 
+const theme = new DataBus().getTheme()
 const eventBus = new EventBus()
 
 const screenWidth  = window.innerWidth
@@ -42,7 +44,9 @@ export default class NumberPicker {
   }
 
   drawToCanvas(ctx) {
-    ctx.fillStyle = '#007fff'
+    ctx.font = '24px Arial'
+    ctx.fillStyle = theme.numberPickerColor
+
     for (let i = 1; i < 10; i++) {
       const startX = this.x + this.x + (i - 1) * CELL_SIZE
       const startY = this.y

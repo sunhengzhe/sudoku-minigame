@@ -4,5 +4,6 @@ export default class Cell {
     this.colIndex = colIndex
     this.number = number
     this.isEditable = isEditable
+    this.isValid = true
   }
 }

@@ -1,4 +1,5 @@
 import Pool from './base/pool'
+import getTheme from './theme/index'
 
 let instance
 
@@ -13,6 +14,7 @@ export default class DataBus {
     instance = this
 
     this.pool = new Pool()
+    this.theme = getTheme()
 
     this.reset()
   }
@@ -24,6 +26,10 @@ export default class DataBus {
     this.enemys     = []
     this.animations = []
     this.gameOver   = false
+  }
+
+  getTheme() {
+    return this.theme
   }
 
   /**

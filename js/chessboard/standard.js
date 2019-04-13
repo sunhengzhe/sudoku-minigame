@@ -1,7 +1,11 @@
 import Cell from './cell'
+import DataBus from '../databus'
+
+const theme = new DataBus().getTheme()
 
 const screenWidth  = window.innerWidth
 
+const MARGIN_TOP = 120
 const MARGIN_TO_VERTICAL_SIDE = 5;
 const THICK_LINE_WIDTH = 3
 const THIN_LINE_WIDTH = 1
@@ -12,7 +16,7 @@ export default class StandardChessBoard {
   constructor(y) {
     this.cells = []
     this.x = MARGIN_TO_VERTICAL_SIDE
-    this.y = y || 50
+    this.y = y || MARGIN_TOP
     this.size = BOARD_SIZE
 
     for (let i = 0; i < 9; i++) {
@@ -22,6 +26,37 @@ export default class StandardChessBoard {
     this.selectedCell = null
 
     this.initEvent()
+  }
+
+  isValidCell(cell) {
+    const { rowIndex, colIndex, number } = cell
+
+    const row = this.cells[rowIndex]
+
+    const existInRow = row.filter((c, i) => i !== colIndex && c.number === number)
+
+    if (existInRow.length) {
+      return false
+    }
+
+    const existInCol = this.cells.map(row => row[colIndex])
+      .filter((c, i) => i !== rowIndex && c.number === number)
+
+    if (existInCol.length) {
+      return false
+    }
+
+    const startRow = rowIndex / 3 * 3;
+    const startCol = colIndex / 3 * 3;
+    for (let i = startRow; i < startRow + 3; i++) {
+        for (let j = startCol; j < startCol + 3; j++) {
+            if (!(i === rowIndex && j === colIndex) && this.cells[i][j] == number) {
+                return false
+            }
+        }
+    }
+
+    return true
   }
 
   initEvent() {
@@ -40,6 +75,12 @@ export default class StandardChessBoard {
             clientY >= y - CELL_SIZE / 2 &&
             clientY <= y + CELL_SIZE / 2
           ) {
+            const cell = this.cells[rowIndex][colIndex]
+
+            if (!cell.isEditable) {
+              return
+            }
+
             this.selectedCell = {
               row: rowIndex,
               col: colIndex
@@ -61,6 +102,7 @@ export default class StandardChessBoard {
 
     if (cell.isEditable) {
       cell.number = number
+      cell.isValid = this.isValidCell(cell)
     }
   }
 
@@ -93,7 +135,7 @@ export default class StandardChessBoard {
   }
 
   drawToCanvas(ctx) {
-    ctx.fillStyle="#fff";
+    ctx.fillStyle = theme.chessBoardBg;
     ctx.fillRect(this.x, this.y, BOARD_SIZE, BOARD_SIZE);
 
     this.cells.forEach((row, rowIndex) => {
@@ -104,7 +146,7 @@ export default class StandardChessBoard {
           this.selectedCell.row === rowIndex &&
           this.selectedCell.col === colIndex
         ) {
-          ctx.fillStyle = '#ccc'
+          ctx.fillStyle = theme.selectedCellBg
           ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
         }
 
@@ -113,9 +155,13 @@ export default class StandardChessBoard {
         }
 
         if (cell.isEditable) {
-          ctx.fillStyle = '#007fff'
+          if (cell.isValid) {
+            ctx.fillStyle = theme.validCellColor
+          } else {
+            ctx.fillStyle = theme.invalidCellColor
+          }
         } else {
-          ctx.fillStyle = '#000'
+          ctx.fillStyle = theme.chessBoardColor
         }
 
         ctx.fillText(
@@ -126,7 +172,9 @@ export default class StandardChessBoard {
       })
     })
 
-    ctx.fillStyle = "#000"
+
+    ctx.strokeStyle = theme.chessBoardBorderColor
+
     for (let i = 0; i < 10; i++) {
       const isThickLine = i % 3 === 0
       const existMargin = this.getMargin(i)
