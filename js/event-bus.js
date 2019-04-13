@@ -13,7 +13,7 @@ export default class EventBus {
   }
 
   on(type, handler) {
-    let handlers = this.listenerMap[type] || (this.listenerMap[type] = [])
+    const handlers = this.listenerMap[type] || (this.listenerMap[type] = [])
     handlers.push(handler)
   }
 
@@ -24,7 +24,7 @@ export default class EventBus {
    */
   emit(type, ...args) {
     setTimeout(() => {
-      let handlers = this.listenerMap[type] || []
+      const handlers = this.listenerMap[type] || []
 
       for (const handler of handlers) {
         handler(...args)

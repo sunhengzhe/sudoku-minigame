@@ -15,7 +15,7 @@ const rollbackBtn = {
   img: 'images/rollback.png',
   text: '撤销',
   onClick: () => {
-    console.log('click rollback')
+    eventBus.emit('rollback')
   }
 }
 

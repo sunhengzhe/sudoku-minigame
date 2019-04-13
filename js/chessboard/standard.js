@@ -26,7 +26,10 @@ export default class StandardChessBoard {
       this.cells.push([]);
     }
 
+    // selectedCell: { row, col }
     this.selectedCell = null
+    // history: [{ type, data }]
+    this.history = []
 
     this.initEvent()
   }
@@ -91,9 +94,26 @@ export default class StandardChessBoard {
     evenBus.on('on-eraser-click', () => {
       this.setNumberToSelectedCell(0)
     })
+
+    evenBus.on('rollback', () => {
+      const history = this.history
+
+      if (history.length) {
+        const action = history.pop()
+        const { type, data } = action
+
+        if (type === 'set-number') {
+          this.selectedCell = {
+            row: data.rowIndex,
+            col: data.colIndex
+          }
+          this.setNumberToSelectedCell(data.from, true)
+        }
+      }
+    })
   }
 
-  setNumberToSelectedCell(number) {
+  setNumberToSelectedCell(number, isRollback = false) {
     if (!this.selectedCell) {
       return
     }
@@ -101,15 +121,31 @@ export default class StandardChessBoard {
     const { row, col } = this.selectedCell
     const cell = this.cells[row][col]
 
+    if (cell.number === number) {
+      return
+    }
+
     if (cell.isEditable) {
       const from = cell.number
-      cell.number = number
+      const to = number
+
+      cell.number = to
       cell.isValid = this.isValidCell(cell)
 
       evenBus.emit('on-cell-set', {
         from,
-        to: number,
+        to,
         cells: this.cells
+      })
+
+      !isRollback && this.history.push({
+        type: 'set-number',
+        data: {
+          rowIndex: this.selectedCell.row,
+          colIndex: this.selectedCell.col,
+          from,
+          to
+        }
       })
     }
   }
