@@ -46,11 +46,11 @@ export default class StandardChessBoard {
       return false
     }
 
-    const startRow = rowIndex / 3 * 3;
-    const startCol = colIndex / 3 * 3;
+    const startRow = Math.floor(rowIndex / 3) * 3;
+    const startCol = Math.floor(colIndex / 3) * 3;
     for (let i = startRow; i < startRow + 3; i++) {
         for (let j = startCol; j < startCol + 3; j++) {
-            if (!(i === rowIndex && j === colIndex) && this.cells[i][j] == number) {
+            if (!(i === rowIndex && j === colIndex) && this.cells[i][j].number == number) {
                 return false
             }
         }
@@ -75,12 +75,6 @@ export default class StandardChessBoard {
             clientY >= y - CELL_SIZE / 2 &&
             clientY <= y + CELL_SIZE / 2
           ) {
-            const cell = this.cells[rowIndex][colIndex]
-
-            if (!cell.isEditable) {
-              return
-            }
-
             this.selectedCell = {
               row: rowIndex,
               col: colIndex
@@ -134,6 +128,40 @@ export default class StandardChessBoard {
     }
   }
 
+  isSelectedCellAt(rowIndex, colIndex) {
+    return this.selectedCell &&
+      this.selectedCell.row === rowIndex &&
+      this.selectedCell.col === colIndex
+  }
+
+  isInHitAreaAt(rowIndex, colIndex) {
+    if (!this.selectedCell) {
+      return false
+    }
+
+    const {
+      row: selectedRowIndex,
+      col: selectedColIndex
+    } = this.selectedCell
+
+
+
+    // 同一行列
+    if (rowIndex === selectedRowIndex || colIndex === selectedColIndex) {
+      return true
+    }
+
+    // 同一九宫格
+    if (
+      Math.floor(rowIndex / 3) === Math.floor(selectedRowIndex / 3) &&
+      Math.floor(colIndex / 3) === Math.floor(selectedColIndex / 3)
+    ) {
+      return true
+    }
+
+    return false
+  }
+
   drawToCanvas(ctx) {
     ctx.fillStyle = theme.chessBoardBg;
     ctx.fillRect(this.x, this.y, BOARD_SIZE, BOARD_SIZE);
@@ -141,11 +169,21 @@ export default class StandardChessBoard {
     this.cells.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
         const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
-        if (
-          this.selectedCell &&
-          this.selectedCell.row === rowIndex &&
-          this.selectedCell.col === colIndex
-        ) {
+
+        if (this.isInHitAreaAt(rowIndex, colIndex)) {
+          ctx.fillStyle = theme.hitCellBg
+          ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
+        }
+
+        if (cell.number > 0 && this.selectedCell) {
+          const { number: selectedNumber } = this.cells[this.selectedCell.row][this.selectedCell.col]
+          if (cell.number === selectedNumber) {
+            ctx.fillStyle = theme.selectedCellBg
+            ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
+          }
+        }
+
+        if (this.isSelectedCellAt(rowIndex, colIndex)) {
           ctx.fillStyle = theme.selectedCellBg
           ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
         }
@@ -154,15 +192,18 @@ export default class StandardChessBoard {
           return
         }
 
+        let cellColor
         if (cell.isEditable) {
           if (cell.isValid) {
-            ctx.fillStyle = theme.validCellColor
+            cellColor = theme.validCellColor
           } else {
-            ctx.fillStyle = theme.invalidCellColor
+            cellColor = theme.invalidCellColor
           }
         } else {
-          ctx.fillStyle = theme.chessBoardColor
+          cellColor = theme.chessBoardColor
         }
+
+        ctx.fillStyle = cellColor
 
         ctx.fillText(
           cell.number,
