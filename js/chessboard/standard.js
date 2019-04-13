@@ -13,9 +13,9 @@ const BOARD_SIZE = screenWidth - 2 * MARGIN_TO_VERTICAL_SIDE
 const CELL_SIZE = (BOARD_SIZE - 4 * THICK_LINE_WIDTH - 6 * THIN_LINE_WIDTH) / 9
 
 export default class StandardChessBoard {
-  constructor(y) {
+  constructor({ x, y } = {}) {
     this.cells = []
-    this.x = MARGIN_TO_VERTICAL_SIDE
+    this.x = x || MARGIN_TO_VERTICAL_SIDE
     this.y = y || MARGIN_TOP
     this.size = BOARD_SIZE
 
@@ -162,6 +162,11 @@ export default class StandardChessBoard {
     return false
   }
 
+  drawCellBg(ctx, x, y, bgColor) {
+    ctx.fillStyle = bgColor
+    ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
+  }
+
   drawToCanvas(ctx) {
     ctx.fillStyle = theme.chessBoardBg;
     ctx.fillRect(this.x, this.y, BOARD_SIZE, BOARD_SIZE);
@@ -170,28 +175,29 @@ export default class StandardChessBoard {
       row.forEach((cell, colIndex) => {
         const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
 
+        // 提示背景
         if (this.isInHitAreaAt(rowIndex, colIndex)) {
-          ctx.fillStyle = theme.hitCellBg
-          ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
+          this.drawCellBg(ctx, x, y, theme.hitCellBg)
         }
 
-        if (cell.number > 0 && this.selectedCell) {
-          const { number: selectedNumber } = this.cells[this.selectedCell.row][this.selectedCell.col]
-          if (cell.number === selectedNumber) {
-            ctx.fillStyle = theme.selectedCellBg
-            ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
-          }
-        }
-
+        // 选中块高亮
         if (this.isSelectedCellAt(rowIndex, colIndex)) {
-          ctx.fillStyle = theme.selectedCellBg
-          ctx.fillRect(x - CELL_SIZE / 2, y - CELL_SIZE / 2, CELL_SIZE, CELL_SIZE);
+          this.drawCellBg(ctx, x, y, theme.selectedCellBg)
         }
 
         if (cell.number === 0) {
           return
         }
 
+        // 相同的数字高亮
+        if (this.selectedCell) {
+          const { number: selectedNumber } = this.cells[this.selectedCell.row][this.selectedCell.col]
+          if (cell.number === selectedNumber) {
+            this.drawCellBg(ctx, x, y, theme.selectedCellBg)
+          }
+        }
+
+        // 渲染数字
         let cellColor
         if (cell.isEditable) {
           if (cell.isValid) {

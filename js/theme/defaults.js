@@ -1,10 +1,10 @@
-const bgc = '#fff'
+const bgc = '#fefefe'
 const bgc2 = '#ecc697'
 
-const active = '#6699A1'
-const active2 = '#A5DEE4'
+const active = '#bfdcfd'
+const active2 = '#e2e7dc'
 
-const valid = '#2EA9DF'
+const valid = '#395da4'
 const valid2 = '#005CAF'
 const invalid = '#D0104C'
 

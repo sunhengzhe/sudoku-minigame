@@ -6,6 +6,7 @@ import Music      from './runtime/music'
 import DataBus    from './databus'
 import StandardChessBoard from './chessboard/standard'
 import NumberPicker from './toolbar/number-picker'
+import ControlPanel from './toolbar/control-panel'
 import EventBus from './event-bus'
 
 const eventBus = new EventBus
@@ -41,9 +42,15 @@ export default class Main {
     this.gameinfo = new GameInfo()
     this.music    = new Music()
     this.chessBoard    = new StandardChessBoard()
+
+    const controlPanelTop = this.chessBoard.y + this.chessBoard.size + 10
+    this.controlPanel = new ControlPanel({
+      y: controlPanelTop
+    })
+
+    const numberPickerTop = this.controlPanel.y + this.controlPanel.height + 10
     this.numberPicker = new NumberPicker({
-      x: this.chessBoard.x,
-      y: this.chessBoard.y + this.chessBoard.size + 10
+      y: numberPickerTop
     })
 
     eventBus.on('on-number-pick', number => {
@@ -51,17 +58,12 @@ export default class Main {
       this.chessBoard.drawToCanvas(ctx)
     })
 
-    this.chessBoard.setCells([
-      [3, 0, 6, 5, 0, 8, 4, 0, 0],
-      [5, 2, 0, 0, 0, 0, 0, 0, 0],
-      [0, 8, 7, 0, 0, 0, 0, 3, 1],
-      [0, 0, 3, 0, 1, 0, 0, 8, 0],
-      [9, 0, 0, 8, 6, 3, 0, 0, 5],
-      [0, 5, 0, 0, 9, 0, 6, 0, 0],
-      [1, 3, 0, 0, 0, 0, 2, 5, 0],
-      [0, 0, 0, 0, 0, 0, 0, 7, 4],
-      [0, 0, 5, 2, 0, 6, 3, 0, 0]
-    ])
+    wx.request({
+      url: 'http://122.128.107.115:1338/sudoku/api/generate',
+      success: (res) => {
+        this.chessBoard.setCells(res.data)
+      }
+    })
 
     this.bindLoop     = this.loop.bind(this)
     this.hasEventBind = false
@@ -144,6 +146,7 @@ export default class Main {
     this.bg.render(ctx)
 
     this.chessBoard.drawToCanvas(ctx)
+    this.controlPanel.drawToCanvas(ctx)
     this.numberPicker.drawToCanvas(ctx)
 
     // databus.bullets

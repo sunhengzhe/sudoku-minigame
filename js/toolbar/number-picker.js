@@ -12,9 +12,10 @@ const BOARD_SIZE = screenWidth - 2 * MARGIN_TO_VERTICAL_SIDE
 const CELL_SIZE = BOARD_SIZE / 9
 
 export default class NumberPicker {
-  constructor({ x, y }) {
-    this.x = x
+  constructor({ x, y } = {}) {
+    this.x = x || MARGIN_TO_VERTICAL_SIDE
     this.y = y
+    this.height = CELL_SIZE
     this.numberButtons = []
 
     this.initEvent()
@@ -44,7 +45,7 @@ export default class NumberPicker {
   }
 
   drawToCanvas(ctx) {
-    ctx.font = '24px Arial'
+    ctx.font = '28px Arial'
     ctx.fillStyle = theme.numberPickerColor
 
     for (let i = 1; i < 10; i++) {
