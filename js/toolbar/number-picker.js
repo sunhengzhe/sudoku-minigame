@@ -79,6 +79,13 @@ export default class NumberPicker {
     this.selectedIndex = -1
   }
 
+  initNumbers(cells) {
+    for (let i = 1; i < 10; i++) {
+      const numberExistCount = this.countCellByNumber(cells, i)
+      this.numberButtons[i - 1].isShow = numberExistCount < 9
+    }
+  }
+
   initEvent() {
     eventBus.on('cell-set', ({ from, to, cells }) => {
       [from.number, to.number].filter(number => number > 0).forEach(number => {

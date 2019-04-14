@@ -120,6 +120,14 @@ export default class StandardChessBoard {
     })
   }
 
+  isFinish() {
+    const invalidRow = this.cells.filter(row => {
+      return row.filter(cell => cell.number === 0 || !cell.isValid).length > 0
+    })
+
+    return invalidRow.length === 0
+  }
+
   setNumberToSelectedCell(number) {
     if (!this.selectedCell) {
       return
@@ -158,6 +166,10 @@ export default class StandardChessBoard {
       })
 
       wx.vibrateShort()
+
+      if (this.isFinish()) {
+        dataBus.gameOver = true
+      }
     }
 
     const to = cell.clone()

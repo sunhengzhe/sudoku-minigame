@@ -9,7 +9,7 @@ import EventBus from './event-bus'
 const eventBus = new EventBus()
 
 let ctx = canvas.getContext('2d')
-let databus = new DataBus()
+let dataBus = new DataBus()
 
 ctx.textAlign = 'center'
 ctx.textBaseline = 'middle'
@@ -24,22 +24,15 @@ export default class Main {
     this.touchStartHandler = this.touchStartEventHandler.bind(this)
     this.touchEndHandler = this.touchEndEventHandler.bind(this)
 
+    canvas.addEventListener('touchstart', this.touchStartHandler)
+    canvas.addEventListener('touchend', this.touchEndHandler)
+
     this.restart()
   }
 
   restart() {
-    databus.reset()
+    dataBus.reset()
     eventBus.reset()
-
-    canvas.removeEventListener(
-      'touchstart',
-      this.touchStartHandler
-    )
-
-    canvas.removeEventListener(
-      'touchend',
-      this.touchEndHandler
-    )
 
     this.bg       = new BackGround(ctx)
     this.music    = new Music()
@@ -69,6 +62,7 @@ export default class Main {
       url: 'http://122.128.107.115:1338/sudoku/api/generate',
       success: (res) => {
         this.chessBoard.setCells(res.data)
+        this.numberPicker.initNumbers(this.chessBoard.cells)
       },
       fail: () => {
 
@@ -88,19 +82,24 @@ export default class Main {
       this.bindLoop,
       canvas
     )
-
-    canvas.addEventListener('touchstart', this.touchStartHandler)
-    canvas.addEventListener('touchend', this.touchEndHandler)
   }
 
   // 统一触摸事件处理逻辑
   touchStartEventHandler(e) {
+    if (dataBus.gameOver) {
+      return
+    }
+
     this.chessBoard.touchStartHandler(e)
     this.numberPicker.touchStartHandler(e)
     this.controlPanel.touchStartHandler(e)
   }
 
   touchEndEventHandler(e) {
+    if (dataBus.gameOver) {
+      return
+    }
+
     this.numberPicker.touchEndHandler(e)
   }
 
@@ -120,7 +119,7 @@ export default class Main {
 
   // 游戏逻辑更新主函数
   update() {
-    if ( databus.gameOver )
+    if ( dataBus.gameOver )
       return;
 
     this.bg.update()
@@ -128,7 +127,7 @@ export default class Main {
 
   // 实现游戏帧循环
   loop() {
-    databus.frame++
+    dataBus.frame++
 
     // this.update()
     this.render()

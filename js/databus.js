@@ -42,10 +42,6 @@ export default class DataBus {
     eventBus.emit('change-mode', this.mode)
   }
 
-  getMode() {
-    return this.mode
-  }
-
   getTheme() {
     return this.theme
   }
