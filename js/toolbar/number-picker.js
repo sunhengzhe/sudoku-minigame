@@ -21,6 +21,7 @@ export default class NumberPicker {
     this.numberButtons = []
     this.color = theme.numberPickerColor
     this.mode = DataBus.MODE.SOLVE
+    this.selectedIndex = -1
 
     this.initButtons()
     this.initEvent()
@@ -66,10 +67,16 @@ export default class NumberPicker {
         y >= btn.startY &&
         y <= btn.endY
       ) {
+        this.selectedIndex = i
         eventBus.emit('number-pick', btn.number)
         break;
       }
     }
+  }
+
+  touchEndHandler(e) {
+    e.preventDefault()
+    this.selectedIndex = -1
   }
 
   initEvent() {
@@ -87,14 +94,19 @@ export default class NumberPicker {
   }
 
   drawToCanvas(ctx) {
-    ctx.font = '28px Arial'
-    ctx.fillStyle = this.color
+    ctx.font = '30px Arial'
 
-    this.numberButtons.forEach(({ startX, startY, number, isShow })=> {
+    this.numberButtons.forEach(({ startX, startY, number, isShow }, index)=> {
       if (this.mode === DataBus.MODE.SOLVE && !isShow) {
         return
       }
 
+      if (index === this.selectedIndex) {
+        ctx.fillStyle = theme.selectedNumberPickerColor
+        ctx.fillRect(startX, startY, CELL_SIZE, CELL_SIZE);
+      }
+
+      ctx.fillStyle = this.color
       ctx.fillText(
         number,
         startX + CELL_SIZE / 2,

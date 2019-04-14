@@ -24,7 +24,8 @@ export default class Main {
   constructor() {
     // 维护当前requestAnimationFrame的id
     this.aniId    = 0
-    this.touchHandler = this.touchEventHandler.bind(this)
+    this.touchStartHandler = this.touchStartEventHandler.bind(this)
+    this.touchEndHandler = this.touchEndEventHandler.bind(this)
 
     this.restart()
   }
@@ -35,7 +36,12 @@ export default class Main {
 
     canvas.removeEventListener(
       'touchstart',
-      this.touchHandler
+      this.touchStartHandler
+    )
+
+    canvas.removeEventListener(
+      'touchend',
+      this.touchEndHandler
     )
 
     this.bg       = new BackGround(ctx)
@@ -81,7 +87,8 @@ export default class Main {
       canvas
     )
 
-    canvas.addEventListener('touchstart', this.touchHandler)
+    canvas.addEventListener('touchstart', this.touchStartHandler)
+    canvas.addEventListener('touchend', this.touchEndHandler)
   }
 
   /**
@@ -128,10 +135,14 @@ export default class Main {
   }
 
   // 统一触摸事件处理逻辑
-  touchEventHandler(e) {
+  touchStartEventHandler(e) {
     this.chessBoard.touchStartHandler(e)
     this.numberPicker.touchStartHandler(e)
     this.controlPanel.touchStartHandler(e)
+  }
+
+  touchEndEventHandler(e) {
+    this.numberPicker.touchEndHandler(e)
   }
 
   /**
