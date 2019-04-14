@@ -113,8 +113,13 @@ export default class StandardChessBoard {
             row: data.rowIndex,
             col: data.colIndex
           }
-          // this.setNumberToSelectedCell(data.from, true)
+          const from = this.cells[data.rowIndex][data.colIndex]
           this.cells[data.rowIndex][data.colIndex] = data.from
+          evenBus.emit('cell-set', {
+            from,
+            to: data.from,
+            cells: this.cells
+          })
         }
       }
     })
@@ -166,10 +171,6 @@ export default class StandardChessBoard {
       })
 
       wx.vibrateShort()
-
-      if (this.isFinish()) {
-        dataBus.gameOver = true
-      }
     }
 
     const to = cell.clone()
@@ -191,6 +192,11 @@ export default class StandardChessBoard {
         to
       }
     })
+
+    if (this.isFinish()) {
+      dataBus.gameOver = true
+      this.selectedCell = null
+    }
   }
 
   setCells(newCells) {
@@ -307,10 +313,7 @@ export default class StandardChessBoard {
   }
 
   drawCellText(ctx, cell) {
-    if (
-      !cell.isEditable ||
-      cell.number > 0
-    ) {
+    if (cell.number > 0) {
       this.drawNormalCellText(ctx, cell)
     } else {
       this.drawDraftCellText(ctx, cell)
@@ -320,10 +323,6 @@ export default class StandardChessBoard {
   drawNormalCellText(ctx, cell) {
     const { rowIndex, colIndex, number } = cell
     let { x, y } = this.getCellCenterPos(rowIndex, colIndex)
-
-    if (number === 0) {
-      return
-    }
 
     // 数字
     let cellColor

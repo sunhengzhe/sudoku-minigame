@@ -1,15 +1,11 @@
-import BackGround from './runtime/background'
-import Music      from './runtime/music'
 import DataBus    from './databus'
-import StandardChessBoard from './chessboard/standard'
-import NumberPicker from './toolbar/number-picker'
-import ControlPanel from './toolbar/control-panel'
-import EventBus from './event-bus'
+import Game from '../stage/game'
+import EventBus from './event-bus';
+import Home from '../stage/home'
 
+const ctx = canvas.getContext('2d')
+const dataBus = new DataBus()
 const eventBus = new EventBus()
-
-let ctx = canvas.getContext('2d')
-let dataBus = new DataBus()
 
 ctx.textAlign = 'center'
 ctx.textBaseline = 'middle'
@@ -21,59 +17,32 @@ export default class Main {
   constructor() {
     // 维护当前requestAnimationFrame的id
     this.aniId    = 0
-    this.touchStartHandler = this.touchStartEventHandler.bind(this)
-    this.touchEndHandler = this.touchEndEventHandler.bind(this)
+    this.stage = new Home()
 
-    canvas.addEventListener('touchstart', this.touchStartHandler)
-    canvas.addEventListener('touchend', this.touchEndHandler)
+    const eventList = ['touchstart', 'touchend']
+    eventList.forEach(event => {
+      canvas.addEventListener(event, (e) => {
+        if (this.stage.eventRegister) {
+          const handler = this.stage.eventRegister() || {}
+          if (handler[event]) {
+            handler[event](e)
+          }
+        }
+      })
+    })
 
-    this.restart()
+    this.onStageChange()
+
+    eventBus.on('change-stage', stage => {
+      this.stage = new Game()
+      this.onStageChange()
+    })
   }
 
-  restart() {
-    dataBus.reset()
-    eventBus.reset()
-
-    this.bg       = new BackGround(ctx)
-    this.music    = new Music()
-    this.chessBoard    = new StandardChessBoard()
-
-    const controlPanelTop = this.chessBoard.y + this.chessBoard.size + 10
-    this.controlPanel = new ControlPanel({
-      y: controlPanelTop
-    })
-
-    const numberPickerTop = this.controlPanel.y + this.controlPanel.height + 10
-    this.numberPicker = new NumberPicker({
-      y: numberPickerTop
-    })
-
-    eventBus.on('on-game-start', () => {
-      this.restart()
-    })
-
-    eventBus.on('number-pick', number => {
-      this.chessBoard.setNumberToSelectedCell(number)
-      this.chessBoard.drawToCanvas(ctx)
-    })
-
-    wx.showLoading({ title: '正在努力获取新的题目...', mask: true })
-    wx.request({
-      url: 'http://122.128.107.115:1338/sudoku/api/generate',
-      success: (res) => {
-        this.chessBoard.setCells(res.data)
-        this.numberPicker.initNumbers(this.chessBoard.cells)
-      },
-      fail: () => {
-
-      },
-      complete: () => {
-        wx.hideLoading()
-      }
-    })
+  onStageChange() {
+    this.stage.start()
 
     this.bindLoop     = this.loop.bind(this)
-    this.hasEventBind = false
 
     // 清除上一局的动画
     window.cancelAnimationFrame(this.aniId);
@@ -84,25 +53,6 @@ export default class Main {
     )
   }
 
-  // 统一触摸事件处理逻辑
-  touchStartEventHandler(e) {
-    if (dataBus.gameOver) {
-      return
-    }
-
-    this.chessBoard.touchStartHandler(e)
-    this.numberPicker.touchStartHandler(e)
-    this.controlPanel.touchStartHandler(e)
-  }
-
-  touchEndEventHandler(e) {
-    if (dataBus.gameOver) {
-      return
-    }
-
-    this.numberPicker.touchEndHandler(e)
-  }
-
   /**
    * canvas重绘函数
    * 每一帧重新绘制所有的需要展示的元素
@@ -110,11 +60,7 @@ export default class Main {
   render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    this.bg.render(ctx)
-
-    this.chessBoard.drawToCanvas(ctx)
-    this.controlPanel.drawToCanvas(ctx)
-    this.numberPicker.drawToCanvas(ctx)
+    this.stage.render(ctx)
   }
 
   // 游戏逻辑更新主函数
