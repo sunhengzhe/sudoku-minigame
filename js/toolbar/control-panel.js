@@ -41,7 +41,15 @@ const replayBtn = {
   img: 'images/replay.png',
   text: '重新开始',
   onClick: () => {
-    eventBus.emit('on-game-start')
+    wx.showModal({
+      title: '提示',
+      content: '确定要重新开始吗？',
+      confirmText: '确定',
+      cancelText: '取消',
+      success: ({ confirm }) => {
+        confirm && eventBus.emit('on-game-start')
+      }
+    })
   }
 }
 

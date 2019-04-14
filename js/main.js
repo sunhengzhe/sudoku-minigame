@@ -64,10 +64,17 @@ export default class Main {
       this.chessBoard.drawToCanvas(ctx)
     })
 
+    wx.showLoading({ title: '正在努力获取新的题目...', mask: true })
     wx.request({
       url: 'http://122.128.107.115:1338/sudoku/api/generate',
       success: (res) => {
         this.chessBoard.setCells(res.data)
+      },
+      fail: () => {
+
+      },
+      complete: () => {
+        wx.hideLoading()
       }
     })
 
