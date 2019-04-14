@@ -150,14 +150,19 @@ export default class StandardChessBoard {
       }
 
       cell.number = number
+
       this.cells.forEach(row => {
         row.forEach(item => {
           item.isValid = this.isValidCell(item)
         })
       })
+
+      wx.vibrateShort()
     }
 
     const to = cell.clone()
+
+    cell.frame = 0
 
     evenBus.emit('cell-set', {
       from,
@@ -302,7 +307,7 @@ export default class StandardChessBoard {
 
   drawNormalCellText(ctx, cell) {
     const { rowIndex, colIndex, number } = cell
-    const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
+    let { x, y } = this.getCellCenterPos(rowIndex, colIndex)
 
     if (number === 0) {
       return
@@ -312,6 +317,12 @@ export default class StandardChessBoard {
     let cellColor
     if (cell.isEditable) {
       cellColor = cell.isValid ? theme.validCellColor : theme.invalidCellColor
+
+      // 不合法动画
+      if (!cell.isValid && cell.frame < 10) {
+        x = x + Math.sin(dataBus.frame) * 5
+        cell.frame++
+      }
     } else {
       cellColor = theme.chessBoardColor
     }

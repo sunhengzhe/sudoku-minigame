@@ -6,11 +6,13 @@ export default class Cell {
     this.isEditable = isEditable
     this.isValid = true
     this.drafts = []
+    this.frame = 0
   }
 
   clone() {
     const newCell = new Cell(this.rowIndex, this.colIndex, this.number, this.isEditable)
     newCell.isValid = this.isValid
+    newCell.frame = this.frame
     newCell.drafts = Object.assign([], this.drafts)
     return newCell
   }
