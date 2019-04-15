@@ -147,7 +147,12 @@ export default class StandardChessBoard {
 
     const from = cell.clone()
 
-    if (this.mode === DataBus.MODE.DRAFT) {
+    if (number === 0) {
+      // 擦除
+      cell.number = 0
+      cell.drafts = []
+    } else if (this.mode === DataBus.MODE.DRAFT) {
+      // 草稿模式
       cell.number = 0
       const indexOfExist = cell.drafts.indexOf(number)
       if (indexOfExist > -1) {
@@ -156,6 +161,7 @@ export default class StandardChessBoard {
         cell.drafts.push(number)
       }
     } else {
+      // 解题模式
       cell.drafts = []
 
       if (cell.number === number) {
