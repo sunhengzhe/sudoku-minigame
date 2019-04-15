@@ -40,7 +40,7 @@ export default class Main {
   }
 
   onStageChange() {
-    this.stage.start()
+    this.stage.onStart()
 
     this.bindLoop     = this.loop.bind(this)
 

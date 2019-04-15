@@ -6,14 +6,13 @@ const screenHeight  = window.innerHeight
 const eventBus = new EventBus()
 
 export default class Home {
-  start() {
+  onStart() {
 
   }
 
   eventRegister() {
     return {
-      'touchstart': (e) => {
-        console.log('on game start')
+      'touchstart': () => {
         eventBus.emit('change-stage', 'game')
       }
     }

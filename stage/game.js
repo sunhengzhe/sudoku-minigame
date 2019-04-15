@@ -18,10 +18,20 @@ ctx.textBaseline = 'middle'
  * 游戏页
  */
 export default class Game {
-  start() {
-    dataBus.reset()
-    eventBus.reset()
+  onStart() {
+    eventBus.on('on-game-start', () => {
+      this.restart()
+    })
 
+    eventBus.on('number-pick', number => {
+      this.chessBoard.setNumberToSelectedCell(number)
+      this.chessBoard.drawToCanvas(ctx)
+    })
+
+    this.restart()
+  }
+
+  restart() {
     this.bg       = new BackGround(ctx)
     this.music    = new Music()
     this.chessBoard    = new StandardChessBoard()
@@ -36,18 +46,9 @@ export default class Game {
       y: numberPickerTop
     })
 
-    eventBus.on('on-game-start', () => {
-      this.start()
-    })
-
-    eventBus.on('number-pick', number => {
-      this.chessBoard.setNumberToSelectedCell(number)
-      this.chessBoard.drawToCanvas(ctx)
-    })
-
     wx.showLoading({ title: '正在努力获取新的题目...', mask: true })
     wx.request({
-      url: 'http://localhost:1338/sudoku/api/generate',
+      url: 'http://122.128.107.115:1338/sudoku/api/generate',
       success: (res) => {
         this.chessBoard.setCells(res.data)
         this.numberPicker.initNumbers(this.chessBoard.cells)

@@ -347,6 +347,13 @@ export default class StandardChessBoard {
     const { rowIndex, colIndex, drafts } = cell
     const { x, y } = this.getCellCenterPos(rowIndex, colIndex)
 
+    if (drafts.length === 1) {
+      ctx.font = '28px Arial'
+      ctx.fillStyle = theme.draftColor
+      ctx.fillText(drafts[0], x, y)
+      return
+    }
+
     drafts.forEach(number => {
       const draftRowIndex = Math.floor((number - 1) / 3)
       const draftColIndex = Math.floor((number - 1) % 3)
